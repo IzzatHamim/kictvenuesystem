@@ -2,63 +2,47 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
+use App\Models\Venue;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct()
     {
-        //
+        $this->middleware('auth');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
-    }
+        $validated = $request->validate([
+            'venue_id' => 'required|exists:venues,id',
+            'booking_date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
+            'notes' => 'nullable|string',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        // Calculate total price
+        $venue = Venue::findOrFail($validated['venue_id']);
+        $start = strtotime($validated['start_time']);
+        $end = strtotime($validated['end_time']);
+        $hours = ($end - $start) / 3600;
+        $totalPrice = $hours * $venue->price_per_hour;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+        // Create booking
+        Booking::create([
+            'user_id' => Auth::id(),
+            'venue_id' => $validated['venue_id'],
+            'booking_date' => $validated['booking_date'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'total_price' => $totalPrice,
+            'notes' => $validated['notes'],
+            'status' => 'pending',
+        ]);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return redirect()->route('home')->with('success', 'Booking submitted successfully! Waiting for admin approval.');
     }
 }
