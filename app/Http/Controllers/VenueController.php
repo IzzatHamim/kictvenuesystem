@@ -9,14 +9,12 @@ class VenueController extends Controller
 {
     public function index()
     {
-        // Get all available venues
         $venues = Venue::where('is_available', true)->get();
-        
         return view('home', compact('venues'));
     }
-    public function show(Venue $venue)
-{
-    return view('venues.show', compact('venue'));
-}
-}
 
+    public function show(Venue $venue)
+    {
+        return view('venues.show', compact('venue'));
+    }
+}

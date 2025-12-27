@@ -140,26 +140,36 @@
                     @auth
                         @if(Auth::user()->role === 'admin')
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Panel</a>
+                                <a class="nav-link" href="{{ route('admin.dashboard') }}">
+                                    <i class="bi bi-shield-check"></i> Admin Dashboard
+                                </a>
                             </li>
                         @endif
                         <li class="nav-item">
-                            <a class="nav-link" href="#">My Bookings</a>
+                            <a class="nav-link" href="{{ route('bookings.index') }}">My Bookings</a>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 {{ Auth::user()->name }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item">Logout</button>
-                                    </form>
-                                </li>
-                            </ul>
+    <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
+    @if(Auth::user()->role === 'admin')
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                <i class="bi bi-shield-check"></i> Admin Panel
+            </a>
+        </li>
+    @endif
+    <li><hr class="dropdown-divider"></li>
+    <li>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="dropdown-item">Logout</button>
+        </form>
+    </li>
+</ul>
                         </li>
                     @else
                         <li class="nav-item">
@@ -189,7 +199,7 @@
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
                         <li><a href="#" class="text-white text-decoration-none">Browse Venues</a></li>
-                        <li><a href="#" class="text-white text-decoration-none">My Bookings</a></li>
+                        <li><a href="{{ route('bookings.index') }}" class="text-white text-decoration-none">My Bookings</a></li>
                         <li><a href="#" class="text-white text-decoration-none">Contact Us</a></li>
                     </ul>
                 </div>

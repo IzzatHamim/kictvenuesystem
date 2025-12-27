@@ -9,11 +9,6 @@ use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -24,6 +19,24 @@ class BookingController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // Check if venue is already booked at this time
+        $conflictingBooking = Booking::where('venue_id', $validated['venue_id'])
+            ->where('booking_date', $validated['booking_date'])
+            ->where('status', 'confirmed')
+            ->where(function($query) use ($validated) {
+                $query->whereBetween('start_time', [$validated['start_time'], $validated['end_time']])
+                    ->orWhereBetween('end_time', [$validated['start_time'], $validated['end_time']])
+                    ->orWhere(function($q) use ($validated) {
+                        $q->where('start_time', '<=', $validated['start_time'])
+                          ->where('end_time', '>=', $validated['end_time']);
+                    });
+            })
+            ->exists();
+
+        if ($conflictingBooking) {
+            return back()->with('error', 'This venue is already booked for the selected time slot.');
+        }
+
         // Calculate total price
         $venue = Venue::findOrFail($validated['venue_id']);
         $start = strtotime($validated['start_time']);
@@ -31,7 +44,7 @@ class BookingController extends Controller
         $hours = ($end - $start) / 3600;
         $totalPrice = $hours * $venue->price_per_hour;
 
-        // Create booking
+        // Create booking with confirmed status
         Booking::create([
             'user_id' => Auth::id(),
             'venue_id' => $validated['venue_id'],
@@ -40,9 +53,20 @@ class BookingController extends Controller
             'end_time' => $validated['end_time'],
             'total_price' => $totalPrice,
             'notes' => $validated['notes'],
-            'status' => 'pending',
+            'status' => 'confirmed', // Auto-confirm
         ]);
 
-        return redirect()->route('home')->with('success', 'Booking submitted successfully! Waiting for admin approval.');
+        return redirect()->route('bookings.index')->with('success', 'Booking confirmed successfully!');
+    }
+
+    // User's bookings page
+    public function index()
+    {
+        $bookings = Booking::where('user_id', Auth::id())
+            ->with('venue')
+            ->orderBy('booking_date', 'desc')
+            ->paginate(10);
+
+        return view('bookings.index', compact('bookings'));
     }
 }

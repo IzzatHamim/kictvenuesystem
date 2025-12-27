@@ -91,8 +91,8 @@
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{{ route('admin.venues.index') }}" class="btn btn-secondary btn-lg w-100">
-                                <i class="bi bi-building"></i> Manage Venues
+                            <a href="{{ route('admin.bookings.index') }}" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-calendar-check"></i> View Bookings
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">

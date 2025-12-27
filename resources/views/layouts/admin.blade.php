@@ -183,7 +183,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="{{ route('admin.bookings.index') }}" class="{{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
                         <i class="bi bi-calendar-check"></i> Bookings
                     </a>
                 </li>
